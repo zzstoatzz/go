@@ -12,24 +12,42 @@ type Edge struct {
 	end   int
 }
 
+type Geometry struct {
+	dimension int
+	width     int
+}
+
+type Graph struct {
+	shape Geometry
+	edges []Edge
+}
+
 func exp(base, power int) int {
 	return int(math.Pow(float64(base), float64(power)))
 }
 
-func possibilities(r, l int) []Edge {
-	var possible []Edge
-
-	N := exp(l, r)
+func (geom Geometry) possibilities() []Edge {
+	var edges []Edge
+	N := exp(geom.width, geom.dimension)
 
 	for i := 0; i < N; i++ {
-		for dim := 0; dim < r; dim++ {
-			to := i + exp(l, dim)
+		for d := 0; d < geom.dimension; d++ {
+			to := i + exp(geom.width, d)
 			edge := Edge{start: i, end: to % N}
-			possible = append(possible, edge)
+			edges = append(edges, edge)
 		}
-
 	}
-	return possible
+	return edges
+}
+
+func (g Graph) randomize() {
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(
+		len(g.edges),
+		func(i, j int) {
+			g.edges[i], g.edges[j] = g.edges[j], g.edges[i]
+		},
+	)
 }
 
 func main() {
@@ -41,17 +59,20 @@ func main() {
 
 	epoch := time.Now()
 
+	geom := Geometry{
+		dimension: R,
+		width:     L,
+	}
 	go func() {
-		channel <- possibilities(R, L)
+		channel <- geom.possibilities()
 	}()
-
 	edges := <-channel
 
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(
-		len(edges),
-		func(i, j int) { edges[i], edges[j] = edges[j], edges[i] },
-	)
+	g := Graph{
+		shape: geom,
+		edges: edges,
+	}
+	g.randomize()
 
 	elapsed := time.Since(epoch)
 	fmt.Printf("took %s", elapsed)
