@@ -79,7 +79,8 @@ func (g Graph) shuffle() {
 }
 
 // func (g Graph) evolve() {
-// 	for event := range g.edges {
-
+// 	for i, edge := range g.edges {
+// 		n1 := g.nodes[]
+// 		n2 := edge.end
 // 	}
 // }
