@@ -8,6 +8,7 @@ import (
 type Node struct {
 	index    int
 	capacity int
+	occupied bool
 }
 
 type Edge struct {
@@ -27,28 +28,44 @@ type Graph struct {
 	nodes []Node
 }
 
-type Result struct {
+type PossibilitySet struct {
 	n Node
 	e Edge
 }
 
-func pathFind(geom Geometry) Graph {
-	channel := make(chan Result)
+type Run struct {
+	S int // max cluster size
+}
+
+func build(geom Geometry) Graph {
+	channel := make(chan PossibilitySet)
 	g := Graph{
 		shape: geom,
 	}
 	go geom.possibilities(channel)
 
-	var odd bool = true
 	for res := range channel {
 		g.edges = append(g.edges, res.e)
-		if odd {
+		if len(g.edges)%2 == 0 {
 			g.nodes = append(g.nodes, res.n)
 		}
-		odd = !odd
 
 	}
 	return g
+}
+
+func (geom Geometry) possibilities(c chan PossibilitySet) {
+	defer close(c)
+	for from := 0; from < geom.N; from++ {
+		res := new(PossibilitySet)
+		budget := exp(2, geom.dimension-1)
+		res.n = Node{index: from, capacity: budget, occupied: false}
+		for d := 0; d < geom.dimension; d++ {
+			to := from + exp(geom.width, d)
+			res.e = Edge{start: from, end: to % geom.N}
+			c <- *res
+		}
+	}
 }
 
 func (g Graph) shuffle() {
@@ -61,16 +78,8 @@ func (g Graph) shuffle() {
 	)
 }
 
-func (geom Geometry) possibilities(c chan Result) {
-	defer close(c)
-	for from := 0; from < geom.N; from++ {
-		res := new(Result)
-		budget := exp(2, geom.dimension-1)
-		res.n = Node{index: from, capacity: budget}
-		for d := 0; d < geom.dimension; d++ {
-			to := from + exp(geom.width, d)
-			res.e = Edge{start: from, end: to % geom.N}
-			c <- *res
-		}
-	}
-}
+// func (g Graph) evolve() {
+// 	for event := range g.edges {
+
+// 	}
+// }

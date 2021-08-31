@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-const R int = 2
-const L int = 4
+const R int = 3
+const L int = 16
 
 var geometry = Geometry{
 	dimension: R,
@@ -18,10 +18,13 @@ func main() {
 
 	epoch := time.Now()
 
-	var G Graph = pathFind(geometry)
+	// initialize graph with in/deterministic edge/node
+	var G Graph = build(geometry)
 
+	// randomize potential edges per swap func
 	G.shuffle()
 
+	// summarize
 	elapsed := time.Since(epoch)
 	fmt.Printf("took %s", elapsed)
 }
