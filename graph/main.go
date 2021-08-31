@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"time"
 )
 
@@ -11,19 +12,18 @@ type Edge struct {
 	end   int
 }
 
-func exp(base, power float64) int {
-	return int(math.Pow(base, power))
+func exp(base, power int) int {
+	return int(math.Pow(float64(base), float64(power)))
 }
 
-func possibilities(r, l float64) []Edge {
+func possibilities(r, l int) []Edge {
 	var possible []Edge // [[s1, s2_i], [s1, s2_{i+1}], ...]
 
 	N := exp(l, r)
 
 	for i := 0; i < N; i++ {
-		for dim := 0; dim < int(r); dim++ {
-			to := i + exp(l, float64(dim))
-
+		for dim := 0; dim < r; dim++ {
+			to := i + exp(l, dim)
 			edge := Edge{start: i, end: to % N}
 			possible = append(possible, edge)
 		}
@@ -32,14 +32,10 @@ func possibilities(r, l float64) []Edge {
 	return possible
 }
 
-// func randomEdges(edges []) {
-
-// }
-
 func main() {
 
-	const R = 2
-	const L = 4
+	const R int = 2
+	const L int = 4
 
 	channel := make(chan []Edge)
 
@@ -49,10 +45,14 @@ func main() {
 		channel <- possibilities(R, L)
 	}()
 
-	allEdges := <-channel
+	edges := <-channel
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(
+		len(edges),
+		func(i, j int) { edges[i], edges[j] = edges[j], edges[i] },
+	)
 
 	elapsed := time.Since(epoch)
-
-	fmt.Println(allEdges)
 	fmt.Printf("took %s", elapsed)
 }
