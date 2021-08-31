@@ -2,80 +2,40 @@ package main
 
 import (
 	"fmt"
+
+	"math"
 )
 
-type Vertex struct {
-	key      int
-	adjacent []*Vertex
+func exp(base, power float64) int {
+	return int(math.Pow(base, power))
 }
 
-type Graph struct {
-	vertices []*Vertex
-}
+func possibilities(r, l float64) [][2]int {
+	var possible [][2]int // [[s1, s2_i], [s1, s2_{i+1}], ...]
 
-func (g *Graph) addVertex(k int) {
-	if contains(g.vertices, k) {
-		fmt.Println("existing... skipped")
-	} else {
-		g.vertices = append(g.vertices, &Vertex{key: k})
-	}
+	N := exp(l, r)
 
-}
-
-func (g *Graph) addEdge(from, to int) {
-	fromVertex := g.getVertex(from)
-	toVertex := g.getVertex(to)
-
-	if fromVertex == nil || toVertex == nil {
-		err := fmt.Errorf("Invalid edge (%v-->%v)", from, to)
-		fmt.Println(err.Error())
-	} else if contains(fromVertex.adjacent, to) {
-		err := fmt.Errorf("Existing edge (%v-->%v)", from, to)
-		fmt.Println(err.Error())
-	} else {
-		fromVertex.adjacent = append(fromVertex.adjacent, toVertex)
-	}
-}
-
-func (g *Graph) getVertex(k int) *Vertex {
-	for i, v := range g.vertices {
-		if v.key == k {
-			return g.vertices[i]
+	for i := 0; i < N; i++ {
+		for dim := 0; dim < int(r); dim++ {
+			t := i + exp(l, float64(dim))
+			edge := [2]int{i, t % N}
+			possible = append(possible, edge)
 		}
-	}
-	return nil
-}
 
-func contains(s []*Vertex, k int) bool {
-	for _, v := range s {
-		if k == v.key {
-			return true
-		}
 	}
-	return false
-}
-
-func (g *Graph) Print() {
-	for _, v := range g.vertices {
-		fmt.Printf("\n Vertex %v :", v.key)
-		for _, v := range v.adjacent {
-			fmt.Printf(" %v", v.key)
-		}
-	}
-	fmt.Println()
+	return possible
 }
 
 func main() {
-	test := &Graph{}
+	const R = 2
+	const L = 4
 
-	for i := 0; i < 5; i++ {
-		test.addVertex(i)
-	}
+	channel := make(chan [][2]int)
 
-	test.addEdge(1, 2)
-	test.addEdge(1, 2)
-	test.addEdge(6, 2)
-	test.addEdge(3, 2)
-	test.Print()
+	go func() {
+		channel <- possibilities(R, L)
+	}()
 
+	item := <-channel
+	fmt.Println("received", item)
 }
