@@ -17,7 +17,7 @@ func exp(base, power int) int {
 }
 
 func possibilities(r, l int) []Edge {
-	var possible []Edge // [[s1, s2_i], [s1, s2_{i+1}], ...]
+	var possible []Edge
 
 	N := exp(l, r)
 
